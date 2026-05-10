@@ -1,132 +1,59 @@
-import heroBg from "../../assets/hero/hero-full.png";
+import heroBg from "../../assets/hero/hero-full.webp";
+import { useLanguage } from "../../context/LanguageContext";
 
 function HeroSection() {
+    const { t } = useLanguage();
+
     return (
-        <section id="home" className="relative w-full overflow-hidden">
-            <div
-                className="
-                    relative min-h-screen w-full
-                    pt-[76px]
-                    md:pt-[88px]
-                "
-            >
-                <div
-                    className="
-                        absolute inset-0 bg-cover bg-no-repeat
-                        bg-[72%_32%]
-                        sm:bg-[74%_30%]
-                        md:bg-[76%_24%]
-                        lg:bg-[center_top]
-                    "
-                    style={{
-                        backgroundImage: `url(${heroBg})`,
-                    }}
-                />
+        <section id="home" className="relative w-full overflow-hidden" aria-label="Hero section">
+            <div className="relative min-h-[100svh] w-full">
+                <div className="absolute inset-0">
+                    <img
+                        src={heroBg}
+                        alt="Luxury premium car showcase"
+                        fetchPriority="high"
+                        loading="eager"
+                        className="h-full w-full object-cover object-[72%_35%] lg:object-[center_15%]"
+                    />
+                </div>
 
-                <div
-                    className="
-                        absolute inset-0
-                        bg-[linear-gradient(180deg,rgba(0,0,0,0.42)_0%,rgba(0,0,0,0.26)_18%,rgba(5,5,6,0.78)_42%,rgba(5,5,6,0.94)_100%)]
-                        lg:bg-[linear-gradient(90deg,rgba(5,5,6,0.96)_0%,rgba(8,8,10,0.88)_22%,rgba(10,10,12,0.56)_42%,rgba(18,14,12,0.24)_68%,rgba(30,20,12,0.22)_100%)]
-                    "
-                />
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.42)_0%,rgba(0,0,0,0.26)_18%,rgba(5,5,6,0.78)_42%,rgba(5,5,6,0.94)_100%)] lg:bg-[linear-gradient(90deg,rgba(5,5,6,0.96)_0%,rgba(8,8,10,0.88)_22%,rgba(10,10,12,0.56)_42%,rgba(18,14,12,0.24)_68%,rgba(30,20,12,0.22)_100%)]" />
 
-                <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/20" />
-
-                <div
-                    className="
-                        relative z-10
-                        flex min-h-[calc(100vh-76px)] items-center
-                        px-5 py-10
-                        sm:px-6 sm:py-12
-                        md:min-h-[calc(100vh-88px)] md:px-8 md:py-16
-                        lg:min-h-[calc(100vh-88px)] lg:px-12
-                        xl:px-20
-                    "
-                >
+                <div className="relative z-10 flex min-h-[100svh] items-center px-5 pt-[76px] md:px-8 md:pt-[88px] xl:px-20">
                     <div className="w-full">
-                        <div className="max-w-[360px] text-left sm:max-w-[430px] md:max-w-[520px] xl:max-w-[560px]">
-                            <p
-                                className="
-                                    text-[0.72rem] font-medium uppercase tracking-[0.26em] text-[#dcc19a]
-                                    sm:text-xs
-                                "
-                            >
-                                Premium Car Brokerage
+                        <div className="max-w-[560px]">
+                            <p className="text-[0.72rem] font-bold uppercase tracking-[0.26em] text-[#dcc19a] sm:text-xs">
+                                {t("hero.subtitle")}
                             </p>
 
-                            <h1
-                                className="
-                                    mt-4 font-serif leading-[0.94] tracking-[-0.035em] text-white
-                                    text-[3rem]
-                                    sm:text-[3.7rem]
-                                    md:text-[4.3rem]
-                                    xl:text-[5.2rem]
-                                "
-                            >
-                                Exclusive Cars,
-                                <br />
-                                Delivered Personally
+                            <h1 className="mt-4 font-serif text-[3rem] leading-[0.94] tracking-[-0.035em] text-white sm:text-[4.3rem] xl:text-[5.2rem] whitespace-pre-line">
+                                {t("hero.title")}
                             </h1>
 
-                            <p
-                                className="
-                                    mt-5 max-w-[320px] text-white/74
-                                    text-[1rem] leading-7
-                                    sm:mt-6 sm:max-w-[360px] sm:text-lg sm:leading-8
-                                    md:max-w-[430px] md:text-[1.12rem]
-                                "
-                            >
-                                We source, negotiate, and secure premium vehicles across Europe with a discreet,
-                                hands-on approach.
+                            <p className="mt-6 max-w-[430px] text-white/80 text-lg leading-8">
+                                {t("hero.description")}
                             </p>
 
-                            <div className="mt-8 flex flex-col gap-4 sm:mt-9 sm:flex-row sm:items-center">
+                            <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
                                 <button
-                                    className="
-                                        rounded-xl bg-[#dcc19a] px-7 py-4 text-base font-medium text-[#2a2118] transition
-                                        hover:bg-[#e7ccab]
-                                        sm:px-8 sm:text-lg
-                                    "
+                                    className="rounded-xl bg-[#dcc19a] px-8 py-4 text-lg font-bold text-[#1a1a1a] transition hover:bg-[#e7ccab]"
+                                    aria-label="Get started with our premium services"
                                 >
-                                    Get Started
+                                    {t("buttons.get_started")}
                                 </button>
-
-                                <a
-                                    href="#featured-cars"
-                                    className="
-                                        text-sm font-medium uppercase tracking-[0.18em] text-white/72 transition
-                                        hover:text-white
-                                    "
-                                >
-                                    Explore Cars
+                                <a href="#featured" className="text-sm font-medium uppercase tracking-[0.18em] text-white/80 transition hover:text-white">
+                                    {t("buttons.explore_cars")}
                                 </a>
                             </div>
 
-                            <div
-                                className="
-                                    mt-10 flex flex-wrap gap-x-10 gap-y-6
-                                    border-t border-white/12 pt-7
-                                    sm:mt-12 sm:pt-8
-                                    lg:mt-14
-                                "
-                            >
+                            <div className="mt-12 flex flex-wrap gap-x-10 gap-y-6 border-t border-white/12 pt-8">
                                 <div>
-                                    <div className="text-[2rem] leading-none text-[#f4ede2] sm:text-[2.35rem] md:text-4xl">
-                                        15+
-                                    </div>
-                                    <div className="mt-2 text-sm leading-5 text-white/58 sm:text-base">
-                                        Years of Experience
-                                    </div>
+                                    <div className="text-[2.35rem] font-serif leading-none text-[#f4ede2] md:text-4xl">15+</div>
+                                    <div className="mt-2 text-sm text-white/60">{t("hero.stats_years")}</div>
                                 </div>
-
                                 <div>
-                                    <div className="text-[2rem] leading-none text-[#f4ede2] sm:text-[2.35rem] md:text-4xl">
-                                        1,000+
-                                    </div>
-                                    <div className="mt-2 text-sm leading-5 text-white/58 sm:text-base">
-                                        Satisfied Clients
-                                    </div>
+                                    <div className="text-[2.35rem] font-serif leading-none text-[#f4ede2] md:text-4xl">1,000+</div>
+                                    <div className="mt-2 text-sm text-white/60">{t("hero.stats_clients")}</div>
                                 </div>
                             </div>
                         </div>

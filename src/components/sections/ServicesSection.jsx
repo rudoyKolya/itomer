@@ -1,8 +1,35 @@
 import { motion } from "framer-motion";
-import { services } from "../../data/services";
 import ServiceCard from "../ui/ServiceCard";
+import { useLanguage } from "../../context/LanguageContext";
+import { Search, ShieldCheck, CircleDollarSign, Truck } from "lucide-react";
 
 function ServicesSection() {
+    const { t } = useLanguage();
+
+    // Создаем массив сервисов, подтягивая текст из локализаций
+    const servicesData = [
+        {
+            icon: Search,
+            title: t("services.items.0.title"),
+            description: t("services.items.0.desc"),
+        },
+        {
+            icon: ShieldCheck,
+            title: t("services.items.1.title"),
+            description: t("services.items.1.desc"),
+        },
+        {
+            icon: CircleDollarSign,
+            title: t("services.items.2.title"),
+            description: t("services.items.2.desc"),
+        },
+        {
+            icon: Truck,
+            title: t("services.items.3.title"),
+            description: t("services.items.3.desc"),
+        },
+    ];
+
     return (
         <section
             id="services"
@@ -17,18 +44,19 @@ function ServicesSection() {
                 >
                     <div className="max-w-[1100px] px-2">
                         <h2 className="font-serif text-4xl leading-tight md:text-6xl">
-                            We Offer a <span className="font-semibold">Full-Service</span> Premium Brokerage Experience
+                            {t("services.title").split("{badge}")[0]}
+                            <span className="font-semibold">{t("services.badge")}</span>
+                            {t("services.title").split("{badge}")[1]}
                         </h2>
 
                         <p className="mt-8 max-w-2xl text-lg leading-8 text-[#6d655d]">
-                            For clients who expect more than a listing feed — we provide sourcing,
-                            guidance, negotiation support, and import coordination in one premium process.
+                            {t("services.description")}
                         </p>
                     </div>
                 </motion.div>
 
                 <div className="mt-14 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-                    {services.map((service, index) => (
+                    {servicesData.map((service, index) => (
                         <ServiceCard key={service.title} service={service} index={index} />
                     ))}
                 </div>

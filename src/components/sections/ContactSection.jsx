@@ -1,7 +1,10 @@
 import { motion } from "framer-motion";
 import { ArrowRight, Mail, Phone, Star } from "lucide-react";
+import { useLanguage } from "../../context/LanguageContext";
 
 function ContactSection() {
+    const { t } = useLanguage();
+
     return (
         <section
             id="contact"
@@ -14,10 +17,10 @@ function ContactSection() {
                     viewport={{ once: true, amount: 0.2 }}
                     transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
                 >
-                    <h2 className="font-serif text-4xl md:text-6xl">Get in Touch</h2>
+                    <h2 className="font-serif text-4xl md:text-6xl">{t("contact.eyebrow")}</h2>
 
                     <p className="mt-6 max-w-md text-lg leading-8 text-[#6d655d]">
-                        Ready to find your next luxury car? Contact us today to get started.
+                        {t("contact.description")}
                     </p>
 
                     <div className="mt-12 max-w-[520px] overflow-hidden rounded-[1.8rem] bg-[linear-gradient(135deg,#1b1715_0%,#3d3128_100%)] p-6 text-white shadow-[0_18px_60px_rgba(0,0,0,0.14)]">
@@ -28,10 +31,10 @@ function ContactSection() {
 
                             <div>
                                 <p className="text-lg leading-8 text-white/90">
-                                    “Outstanding service. ITOMER helped us identify the right car quickly and handled the process with total clarity.”
+                                    {t("contact.testimonial")}
                                 </p>
-                                <p className="mt-5 text-sm tracking-[0.18em] text-white/55">
-                                    ALEX K. · SATISFIED CLIENT
+                                <p className="mt-5 text-sm tracking-[0.18em] text-white/55 uppercase">
+                                    {t("contact.client_name")}
                                 </p>
                             </div>
                         </div>
@@ -45,27 +48,27 @@ function ContactSection() {
                     transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
                     className="rounded-[1.8rem] border border-black/5 bg-white p-8 shadow-[0_18px_60px_rgba(0,0,0,0.08)]"
                 >
-                    <h3 className="mb-6 text-4xl font-serif">Full Name</h3>
+                    <h3 className="mb-6 text-4xl font-serif">{t("contact.form_title")}</h3>
 
                     <div className="space-y-4">
                         <input
                             type="text"
-                            placeholder="Your name"
+                            placeholder={t("contact.placeholder_name")}
                             className="w-full rounded-xl border border-[#e7ddd3] bg-[#f6f2ee] px-4 py-3.5 outline-none transition focus:border-[#d8bd96]"
                         />
                         <input
                             type="email"
-                            placeholder="Email"
+                            placeholder={t("contact.placeholder_email")}
                             className="w-full rounded-xl border border-[#e7ddd3] bg-[#f6f2ee] px-4 py-3.5 outline-none transition focus:border-[#d8bd96]"
                         />
                         <input
                             type="tel"
-                            placeholder="Phone Number"
+                            placeholder={t("contact.placeholder_phone")}
                             className="w-full rounded-xl border border-[#e7ddd3] bg-[#f6f2ee] px-4 py-3.5 outline-none transition focus:border-[#d8bd96]"
                         />
                         <textarea
                             rows={5}
-                            placeholder="Message"
+                            placeholder={t("contact.placeholder_message")}
                             className="w-full rounded-xl border border-[#e7ddd3] bg-[#f6f2ee] px-4 py-3.5 outline-none transition focus:border-[#d8bd96]"
                         />
                     </div>
@@ -74,7 +77,7 @@ function ContactSection() {
                         type="submit"
                         className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#dcc19a] px-6 py-4 text-lg font-medium text-[#2b2219] transition hover:bg-[#e5cbab]"
                     >
-                        Contact Us <ArrowRight className="h-4 w-4" />
+                        {t("buttons.contact_us")} <ArrowRight className="h-4 w-4 rtl:rotate-180" />
                     </button>
                 </motion.form>
 
@@ -88,24 +91,24 @@ function ContactSection() {
                     <div className="space-y-6 text-lg text-[#6d655d]">
                         <div className="flex items-center gap-4">
                             <Phone className="h-5 w-5 text-[#b28a58]" />
-                            <span>+420 123 456 789</span>
+                            <span dir="ltr">{t("contact.phone")}</span>
                         </div>
                         <div className="flex items-center gap-4">
                             <Mail className="h-5 w-5 text-[#b28a58]" />
-                            <span>info@itomerlux.com</span>
+                            <span>{t("contact.email")}</span>
                         </div>
                     </div>
 
                     <div className="mt-10">
-                        <h3 className="font-serif text-4xl text-[#2d2621]">Contact</h3>
+                        <h3 className="font-serif text-4xl text-[#2d2621]">{t("nav.contact")}</h3>
                         <div className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-sm uppercase tracking-[0.18em] text-[#8d857c]">
-                            <span>Home</span>
-                            <span>About</span>
-                            <span>Services</span>
-                            <span>Featured Cars</span>
-                            <span>Contact</span>
+                            <span>{t("nav.home")}</span>
+                            <span>{t("nav.about")}</span>
+                            <span>{t("nav.services")}</span>
+                            <span>{t("nav.featured")}</span>
+                            <span>{t("nav.contact")}</span>
                         </div>
-                        <p className="mt-10 text-sm text-[#948c84]">© 2026 | ITOMER. All rights reserved.</p>
+                        <p className="mt-10 text-sm text-[#948c84]">{t("contact.footer_copy")}</p>
                     </div>
                 </motion.div>
             </div>

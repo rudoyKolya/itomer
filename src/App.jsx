@@ -5,17 +5,20 @@ import AboutSection from "./components/sections/AboutSection";
 import ServicesSection from "./components/sections/ServicesSection";
 import FeaturedCarsSection from "./components/sections/FeaturedCarsSection";
 import ContactSection from "./components/sections/ContactSection";
+import { LanguageProvider } from "./context/LanguageContext";
 
 function App() {
     return (
-        <SmoothScroll>
-            <Header />
-            <HeroSection />
-            <AboutSection />
-            <ServicesSection />
-            <FeaturedCarsSection />
-            <ContactSection />
-        </SmoothScroll>
+        <LanguageProvider>
+            <SmoothScroll>
+                <Header />
+                <HeroSection />
+                <AboutSection />
+                <ServicesSection />
+                <FeaturedCarsSection />
+                <ContactSection />
+            </SmoothScroll>
+        </LanguageProvider>
     );
 }
 
