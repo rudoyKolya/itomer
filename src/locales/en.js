@@ -142,5 +142,19 @@ export default {
             name: "Aston Martin DB11",
             description: "Striking new design language with pioneering aerodynamics."
         }
+    },
+    map: {
+        badge: "Logistics",
+        title: "European\nSourcing Network",
+        description: "Our transport infrastructure ensures secure, fully insured delivery of exclusive vehicles directly to any major European city.",
+        stats_hubs: "Active Hubs",
+        stats_shipping: "Shipping",
+        shipping_value: "Worldwide",
+        cities: {
+            prague: "Prague", warsaw: "Warsaw", berlin: "Berlin", paris: "Paris",
+            london: "London", madrid: "Madrid", rome: "Rome", monaco: "Monaco",
+            stockholm: "Stockholm", dublin: "Dublin", kyiv: "Kyiv", bucharest: "Bucharest",
+            sarajevo: "Sarajevo", oslo: "Oslo", athens: "Athens", riga: "Riga"
+        }
     }
 };

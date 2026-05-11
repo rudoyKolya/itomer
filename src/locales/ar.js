@@ -142,5 +142,19 @@ export default {
             name: "أستون مارتن DB11",
             description: "لغة تصميم جديدة ومذهلة مع ديناميكا هوائية رائدة."
         }
+    },
+    map: {
+        badge: "الخدمات اللوجستية",
+        title: "شبكة التوريد\nالأوروبية",
+        description: "تضمن البنية التحتية للنقل لدينا توصيلاً آمناً ومؤمناً بالكامل للمركبات الحصرية مباشرة إلى أي مدينة أوروبية رئيسية.",
+        stats_hubs: "المراكز النشطة",
+        stats_shipping: "الشحن",
+        shipping_value: "عالمياً",
+        cities: {
+            prague: "براغ", warsaw: "وارسو", berlin: "برلين", paris: "باريس",
+            london: "لندن", madrid: "مدريد", rome: "روما", monaco: "موناكو",
+            stockholm: "ستوكهولم", dublin: "دبلن", kyiv: "كييف", bucharest: "بوخارست",
+            sarajevo: "سراييفو", oslo: "أوسلو", athens: "أثينا", riga: "ريغا"
+        }
     }
 };

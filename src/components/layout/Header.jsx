@@ -1,12 +1,55 @@
-import { useState } from "react";
-import { Menu, X, Globe } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Menu, X, Globe, ChevronDown } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 
 const HEADER_OFFSET = 88;
 
+// Добавили short для красивых квадратных кнопок на мобилках
+const LANGUAGES = [
+    { code: "cs", label: "Čeština", short: "CZ" },
+    { code: "en", label: "English", short: "EN" },
+    { code: "de", label: "Deutsch", short: "DE" },
+    { code: "fr", label: "Français", short: "FR" },
+    { code: "pl", label: "Polski", short: "PL" },
+    { code: "es", label: "Español", short: "ES" },
+    { code: "it", label: "Italiano", short: "IT" },
+    { code: "uk", label: "Українська", short: "UA" },
+    { code: "be", label: "Беларуская", short: "BY" },
+    { code: "ar", label: "العربية", short: "AR" }
+];
+
 function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
+
     const { language, setLanguage, t } = useLanguage();
+    const langMenuRef = useRef(null);
+
+    // Усиленная блокировка скролла
+    useEffect(() => {
+        if (isMenuOpen) {
+            document.body.style.overflow = "hidden";
+            document.documentElement.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "";
+            document.documentElement.style.overflow = "";
+        }
+        return () => {
+            document.body.style.overflow = "";
+            document.documentElement.style.overflow = "";
+        };
+    }, [isMenuOpen]);
+
+    // Закрытие десктопного дропдауна
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (langMenuRef.current && !langMenuRef.current.contains(event.target)) {
+                setIsLangMenuOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     const navItems = [
         { label: t("nav.home"), id: "home" },
@@ -21,24 +64,15 @@ function Header() {
         const target = document.getElementById(targetId);
         if (!target) return;
 
-        // МАГИЯ ЗДЕСЬ: Если GSAP закрепил секцию, он обернул её в .pin-spacer.
-        // Сама секция стала fixed, поэтому мы измеряем позицию её обертки.
-        // Если обертки нет (на мобилках или других блоках), измеряем саму секцию.
         const pinSpacer = target.closest('.pin-spacer');
         const measureElement = pinSpacer ? pinSpacer : target;
-
-        // Получаем точную абсолютную позицию элемента от самого верха страницы
         const absoluteTop = measureElement.getBoundingClientRect().top + window.scrollY;
 
-        // Базовый отступ
         let extraOffset = targetId === "about" ? 120 : 0;
-
-        // Дополнительный скролл для GSAP-секции (только на десктопах)
         if (targetId === "featured" && window.innerWidth >= 1024) {
             extraOffset += window.innerWidth * 0.7;
         }
 
-        // Итоговая точка скролла: всегда одинаковая, сколько бы раз ни кликали
         const finalScrollTarget = absoluteTop - HEADER_OFFSET + extraOffset;
 
         window.scrollTo({
@@ -50,98 +84,130 @@ function Header() {
     };
 
     return (
-        <header className="fixed left-0 right-0 top-0 z-50">
-            <div className="absolute inset-0 border-b border-white/10 bg-black/45 backdrop-blur-md" />
+        <>
+            <header className="fixed left-0 right-0 top-0 z-50 transform-gpu">
+                <div className="absolute inset-0 border-b border-white/10 bg-black/45 backdrop-blur-md transform-gpu will-change-transform [backface-visibility:hidden]" />
 
-            <div className="relative flex h-[76px] items-center justify-between px-5 sm:px-6 md:h-[88px] md:px-8 xl:px-20">
-                <a
-                    href="#home"
-                    onClick={(event) => handleNavClick(event, "home")}
-                    className="text-lg tracking-[0.24em] text-white sm:text-xl"
-                    aria-label="ITOMER Home"
-                >
-                    ITOMER
-                </a>
+                <div className="relative flex h-[76px] items-center justify-between px-5 sm:px-6 md:h-[88px] md:px-8 xl:px-20">
+                    <a
+                        href="#home"
+                        onClick={(event) => handleNavClick(event, "home")}
+                        className="text-lg tracking-[0.24em] text-white sm:text-xl"
+                        aria-label="ITOMER Home"
+                    >
+                        ITOMER
+                    </a>
 
-                <nav className="hidden gap-10 text-sm text-white/70 lg:flex" aria-label="Main navigation">
-                    {navItems.map((item) => (
-                        <a
-                            key={item.id}
-                            href={`#${item.id}`}
-                            onClick={(event) => handleNavClick(event, item.id)}
-                            className="transition hover:text-white"
-                        >
-                            {item.label}
-                        </a>
-                    ))}
-                </nav>
+                    <nav className="hidden gap-10 text-sm text-white/70 lg:flex" aria-label="Main navigation">
+                        {navItems.map((item) => (
+                            <a
+                                key={item.id}
+                                href={`#${item.id}`}
+                                onClick={(event) => handleNavClick(event, item.id)}
+                                className="transition hover:text-white"
+                            >
+                                {item.label}
+                            </a>
+                        ))}
+                    </nav>
 
-                <div className="hidden lg:flex items-center gap-6">
-                    <div className="flex items-center gap-2 text-white/70">
-                        <Globe size={16} aria-hidden="true" />
-                        <label htmlFor="language-select-desktop" className="sr-only">
-                            Change language
-                        </label>
-                        <select
-                            id="language-select-desktop"
-                            value={language}
-                            onChange={(e) => setLanguage(e.target.value)}
-                            className="bg-transparent outline-none cursor-pointer hover:text-white uppercase font-medium text-xs"
-                            aria-label="Select Language"
-                        >
-                            <option value="en" className="bg-[#050506]">EN</option>
-                            <option value="ru" className="bg-[#050506]">RU</option>
-                            <option value="ar" className="bg-[#050506]">AR</option>
-                        </select>
+                    <div className="hidden lg:flex items-center gap-6">
+                        <div className="relative" ref={langMenuRef}>
+                            <button
+                                onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
+                                className="flex items-center gap-1.5 text-white/70 transition hover:text-white"
+                                aria-label="Select Language"
+                            >
+                                <Globe size={16} />
+                                <span className="text-xs font-medium uppercase">{language}</span>
+                                <ChevronDown size={14} className={`transition-transform duration-300 ${isLangMenuOpen ? "rotate-180" : ""}`} />
+                            </button>
+
+                            <div className={`absolute right-0 top-full mt-4 w-40 overflow-hidden rounded-xl border border-white/10 bg-[#050506]/95 backdrop-blur-xl shadow-2xl transition-all duration-300 origin-top ${isLangMenuOpen ? "scale-100 opacity-100 visible" : "scale-95 opacity-0 invisible"}`}>
+                                <div className="max-h-[60vh] overflow-y-auto py-2 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/20">
+                                    {LANGUAGES.map((lang) => (
+                                        <button
+                                            key={lang.code}
+                                            onClick={() => {
+                                                setLanguage(lang.code);
+                                                setIsLangMenuOpen(false);
+                                            }}
+                                            className={`flex w-full items-center px-4 py-2.5 text-sm transition-colors hover:bg-white/10 ${language === lang.code ? "text-[#dcc19a] bg-white/5" : "text-white/70"}`}
+                                        >
+                                            {lang.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        <button className="rounded-xl bg-[#dcc19a] px-5 py-2.5 text-sm font-bold text-[#1a1a1a] transition hover:bg-[#e7ccab]">
+                            {t("buttons.contact_us")}
+                        </button>
                     </div>
 
-                    <button className="rounded-xl bg-[#dcc19a] px-5 py-2.5 text-sm font-bold text-[#1a1a1a] transition hover:bg-[#e7ccab]">
-                        {t("buttons.contact_us")}
+                    <button
+                        type="button"
+                        onClick={() => setIsMenuOpen((value) => !value)}
+                        aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+                        aria-expanded={isMenuOpen}
+                        className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-white transition hover:bg-white/[0.08] lg:hidden relative z-50"
+                    >
+                        {isMenuOpen ? <X size={22} /> : <Menu size={22} />}
                     </button>
                 </div>
+            </header>
 
-                <button
-                    type="button"
-                    onClick={() => setIsMenuOpen((value) => !value)}
-                    aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-                    aria-expanded={isMenuOpen}
-                    className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-white transition hover:bg-white/[0.08] lg:hidden"
-                >
-                    {isMenuOpen ? <X size={22} /> : <Menu size={22} />}
-                </button>
-            </div>
+            {/* Мобильное меню на весь экран */}
+            <div className={`lg:hidden fixed inset-0 z-40 bg-[#050506] flex flex-col pt-[76px] md:pt-[88px] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${isMenuOpen ? "translate-x-0 opacity-100 visible" : "translate-x-full opacity-0 invisible"}`}>
 
-            {/* Mobile Menu */}
-            <div className={`lg:hidden absolute left-0 right-0 top-[76px] border-b border-white/10 bg-[#050506]/95 px-5 py-5 backdrop-blur-xl transition duration-300 ${isMenuOpen ? "translate-y-0 opacity-100" : "-translate-y-4 opacity-0 pointer-events-none"}`}>
-                <nav className="flex flex-col gap-1">
-                    {navItems.map((item) => (
-                        <a key={item.id} href={`#${item.id}`} onClick={(event) => handleNavClick(event, item.id)} className="rounded-xl px-4 py-3 text-base text-white/72 transition hover:bg-white/[0.04] hover:text-white">
-                            {item.label}
-                        </a>
-                    ))}
-                </nav>
-                <div className="mt-5 pt-5 border-t border-white/5 flex flex-col gap-4">
-                    <div className="relative">
-                        <label htmlFor="language-select-mobile" className="sr-only">
-                            Change language
-                        </label>
-                        <select
-                            id="language-select-mobile"
-                            value={language}
-                            onChange={(e) => setLanguage(e.target.value)}
-                            className="w-full bg-white/[0.04] text-white rounded-xl px-4 py-3 outline-none appearance-none"
+                {/* overscroll-none железно запрещает скроллу пробиваться к body */}
+                <div className="flex-1 overflow-y-auto overscroll-none px-6 py-8 flex flex-col">
+
+                    {/* Меню */}
+                    <nav className="flex flex-col gap-6 flex-1">
+                        {navItems.map((item) => (
+                            <a
+                                key={item.id}
+                                href={`#${item.id}`}
+                                onClick={(event) => handleNavClick(event, item.id)}
+                                className="text-3xl font-serif text-white/90 transition-colors active:text-[#dcc19a]"
+                            >
+                                {item.label}
+                            </a>
+                        ))}
+                    </nav>
+
+                    {/* Нижний блок: Языки + Кнопка */}
+                    <div className="mt-8 flex flex-col gap-8 pb-8">
+
+                        {/* Сетка языков */}
+                        <div className="flex flex-wrap justify-center gap-2.5">
+                            {LANGUAGES.map((lang) => (
+                                <button
+                                    key={lang.code}
+                                    onClick={() => setLanguage(lang.code)}
+                                    className={`flex h-[46px] w-[46px] items-center justify-center rounded-xl border text-sm font-bold transition-colors ${
+                                        language === lang.code
+                                            ? "border-[#dcc19a] bg-[#dcc19a]/10 text-[#dcc19a]"
+                                            : "border-white/10 bg-white/[0.04] text-white/50 hover:bg-white/10 hover:text-white"
+                                    }`}
+                                >
+                                    {lang.short}
+                                </button>
+                            ))}
+                        </div>
+
+                        <button
+                            onClick={(event) => handleNavClick(event, "contact")}
+                            className="w-full rounded-xl bg-[#dcc19a] px-5 py-4 text-base font-bold text-[#1a1a1a] shadow-lg active:scale-[0.98] transition-transform"
                         >
-                            <option value="en" className="bg-[#050506]">English</option>
-                            <option value="ru" className="bg-[#050506]">Русский</option>
-                            <option value="ar" className="bg-[#050506]">العربية</option>
-                        </select>
+                            {t("buttons.contact_us")}
+                        </button>
                     </div>
-                    <button onClick={(event) => handleNavClick(event, "contact")} className="w-full rounded-xl bg-[#dcc19a] px-5 py-3 text-sm font-bold text-[#1a1a1a]">
-                        {t("buttons.contact_us")}
-                    </button>
                 </div>
             </div>
-        </header>
+        </>
     );
 }
 

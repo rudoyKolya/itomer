@@ -18,3 +18,8 @@ body {
 img {
     display: block;
 }
+@media (min-width: 1025px) {
+    *, *::before, *::after {
+        cursor: none !important;
+    }
+}

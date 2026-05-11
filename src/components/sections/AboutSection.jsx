@@ -5,6 +5,45 @@ import { useLanguage } from "../../context/LanguageContext";
 
 gsap.registerPlugin(ScrollTrigger);
 
+// 1. Вынесли карточку в отдельный компонент для управления "фонариком"
+function InteractiveCard({ point }) {
+    const handleMouseMove = (e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        e.currentTarget.style.setProperty("--mouse-x", `${x}px`);
+        e.currentTarget.style.setProperty("--mouse-y", `${y}px`);
+    };
+
+    return (
+        <article
+            onMouseMove={handleMouseMove}
+            className="group relative w-full max-w-[760px] overflow-hidden rounded-[30px] border border-white/10 bg-white/[0.04] p-8 backdrop-blur-md transition-all duration-500 hover:-translate-y-2 hover:border-[#dcc19a]/30 hover:bg-white/[0.06] hover:shadow-[0_20px_40px_-15px_rgba(220,193,154,0.1)]"
+        >
+            {/* Эффект фонарика (Spotlight) */}
+            <div
+                className="pointer-events-none absolute -inset-px z-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                style={{
+                    background: "radial-gradient(600px circle at var(--mouse-x, 0) var(--mouse-y, 0), rgba(220,193,154,0.12), transparent 40%)",
+                }}
+            />
+
+            {/* Контент карточки */}
+            <div className="relative z-10">
+                <div className="text-[0.72rem] font-medium uppercase tracking-[0.24em] text-[#dcc19a] transition-colors duration-300 group-hover:text-white">
+                    {point.number}
+                </div>
+                <h3 className="mt-6 text-[2rem] font-medium leading-tight text-white transition-transform duration-300 group-hover:translate-x-2">
+                    {point.title}
+                </h3>
+                <p className="mt-5 text-[1.02rem] leading-8 text-white/66 transition-colors duration-300 group-hover:text-white/80">
+                    {point.description}
+                </p>
+            </div>
+        </article>
+    );
+}
+
 function AboutSection() {
     const { t } = useLanguage();
     const sectionRef = useRef(null);
@@ -28,6 +67,8 @@ function AboutSection() {
         if (!section || !bg || !cardsTrack) return undefined;
 
         const mm = gsap.matchMedia();
+
+        // Анимации для десктопа
         mm.add("(min-width: 1024px)", () => {
             const ctx = gsap.context(() => {
                 const getTrackHeight = () => cardsTrack.scrollHeight;
@@ -54,6 +95,26 @@ function AboutSection() {
             }, section);
             return () => ctx.revert();
         });
+
+        // 2. Добавили появление карточек для мобилок
+        mm.add("(max-width: 1023px)", () => {
+            mobileCardRefs.current.forEach((card, index) => {
+                gsap.fromTo(card,
+                    { opacity: 0, y: 30 },
+                    {
+                        opacity: 1,
+                        y: 0,
+                        duration: 0.8,
+                        ease: "power2.out",
+                        scrollTrigger: {
+                            trigger: card,
+                            start: "top 85%",
+                        }
+                    }
+                );
+            });
+        });
+
         return () => mm.revert();
     }, []);
 
@@ -76,12 +137,9 @@ function AboutSection() {
                     </div>
                     <div className="relative h-full overflow-hidden">
                         <div ref={cardsTrackRef} className="absolute inset-x-0 flex flex-col gap-8 pl-10 transform-gpu will-change-transform">
+                            {/* Используем новый интерактивный компонент */}
                             {aboutPoints.map((point) => (
-                                <article key={point.number} className="relative w-full max-w-[760px] rounded-[30px] border border-white/10 bg-white/[0.04] p-8 backdrop-blur-md">
-                                    <div className="text-[0.72rem] font-medium uppercase tracking-[0.24em] text-[#dcc19a]">{point.number}</div>
-                                    <h3 className="mt-6 text-[2rem] font-medium leading-tight text-white">{point.title}</h3>
-                                    <p className="mt-5 text-[1.02rem] leading-8 text-white/66">{point.description}</p>
-                                </article>
+                                <InteractiveCard key={point.number} point={point} />
                             ))}
                         </div>
                     </div>
@@ -93,12 +151,11 @@ function AboutSection() {
                 <p className="text-[0.72rem] font-medium uppercase tracking-[0.28em] text-[#dcc19a]">{t("about.eyebrow")}</p>
                 <h2 className="mt-4 font-serif text-[3.2rem] text-white">{t("about.title")}</h2>
                 <p className="mt-6 text-white/62 leading-7">{t("about.description")}</p>
-                <div className="mt-12 space-y-5">
+                <div className="mt-12 space-y-5 overflow-hidden">
                     {aboutPoints.map((point, index) => (
-                        <article key={point.number} ref={(el) => { mobileCardRefs.current[index] = el; }} className="rounded-[24px] border border-white/10 bg-white/[0.04] p-5 backdrop-blur-md">
-                            <h3 className="text-[1.5rem] font-medium text-white">{point.title}</h3>
-                            <p className="mt-4 text-white/66 leading-7">{point.description}</p>
-                        </article>
+                        <div key={point.number} ref={(el) => { mobileCardRefs.current[index] = el; }}>
+                            <InteractiveCard point={point} />
+                        </div>
                     ))}
                 </div>
             </div>
