@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import ServiceCard from "../ui/ServiceCard";
 import { useLanguage } from "../../context/LanguageContext";
 import { Search, ShieldCheck, CircleDollarSign, Truck } from "lucide-react";
+import EuropeMap from "../ui/EuropeMap";
 
 function ServicesSection() {
     const { t } = useLanguage();
@@ -59,6 +60,13 @@ function ServicesSection() {
                     {servicesData.map((service, index) => (
                         <ServiceCard key={service.title} service={service} index={index} />
                     ))}
+                </div>
+                <div className="mt-20">
+                    <div className="text-center mb-10">
+                        <h3 className="text-2xl font-serif text-white mb-2">European Sourcing Network</h3>
+                        <p className="text-white/50 text-sm">Direct access to premium vehicles across all major hubs.</p>
+                    </div>
+                    <EuropeMap />
                 </div>
             </div>
         </section>
