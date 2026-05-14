@@ -1,19 +1,20 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import ar from "../locales/ar";
-import be from "../locales/be";
 import cs from "../locales/cs";
 import de from "../locales/de";
 import en from "../locales/en";
 import es from "../locales/es";
 import fr from "../locales/fr";
 import it from "../locales/it";
+import nl from "../locales/nl";
 import pl from "../locales/pl";
-import uk from "../locales/uk";
+import pt from "../locales/pt";
+import tr from "../locales/tr";
 
 import { LanguageContext } from "./LanguageContext.js";
 
-const translations = { cs, en, ar, de, fr, pl, es, it, be, uk };
+const translations = { cs, en, ar, de, fr, pl, es, it, pt, tr, nl };
 const validLanguages = Object.keys(translations);
 
 export function LanguageProvider({ children }) {
@@ -24,6 +25,11 @@ export function LanguageProvider({ children }) {
     });
 
     useEffect(() => {
+        if (!validLanguages.includes(language)) {
+            setLanguage("cs");
+            return;
+        }
+
         localStorage.setItem("app_language", language);
 
         const isRtl = language === "ar";
@@ -32,12 +38,12 @@ export function LanguageProvider({ children }) {
         document.documentElement.lang = language;
     }, [language]);
 
-    const t = (path) => {
+    const t = useCallback((path) => {
         const keys = path.split(".");
         let result = translations[language];
 
         for (const key of keys) {
-            if (result && result[key]) {
+            if (result && result[key] !== undefined) {
                 result = result[key];
             } else {
                 return path;
@@ -45,10 +51,15 @@ export function LanguageProvider({ children }) {
         }
 
         return result;
-    };
+    }, [language]);
+
+    const contextValue = useMemo(
+        () => ({ language, setLanguage, t }),
+        [language, t]
+    );
 
     return (
-        <LanguageContext.Provider value={{ language, setLanguage, t }}>
+        <LanguageContext.Provider value={contextValue}>
             {children}
         </LanguageContext.Provider>
     );

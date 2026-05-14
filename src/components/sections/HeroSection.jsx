@@ -1,5 +1,6 @@
 import heroBg from "../../assets/hero/hero-full.webp";
 import { useLanguage } from "../../context/useLanguage";
+import { handleAnchorClick } from "../../utils/scrollTo";
 
 function HeroSection() {
     const { t } = useLanguage();
@@ -35,13 +36,19 @@ function HeroSection() {
                             </p>
 
                             <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
-                                <button
-                                    className="rounded-xl bg-[#dcc19a] px-8 py-4 text-lg font-bold text-[#1a1a1a] transition hover:bg-[#e7ccab]"
+                                <a
+                                    href="#about"
+                                    onClick={(e) => handleAnchorClick(e, "about")}
+                                    className="rounded-xl bg-[#dcc19a] px-8 py-4 text-center text-lg font-bold text-[#1a1a1a] transition hover:bg-[#e7ccab]"
                                     aria-label="Get started with our premium services"
                                 >
                                     {t("buttons.get_started")}
-                                </button>
-                                <a href="#featured" className="text-sm font-medium uppercase tracking-[0.18em] text-white/80 transition hover:text-white">
+                                </a>
+                                <a
+                                    href="#featured"
+                                    onClick={(e) => handleAnchorClick(e, "featured", window.innerWidth >= 1024 ? window.innerWidth * 0.7 : 0)}
+                                    className="text-sm font-medium uppercase tracking-[0.18em] text-white/80 transition hover:text-white"
+                                >
                                     {t("buttons.explore_cars")}
                                 </a>
                             </div>

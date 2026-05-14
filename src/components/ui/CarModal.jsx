@@ -1,65 +1,118 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { motion } from "framer-motion";
-import { X, Volume2, VolumeX } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, Volume2, VolumeX, ChevronLeft, ChevronRight } from "lucide-react";
 import { useLanguage } from "../../context/useLanguage";
+
+const SLIDE_INTERVAL = 4000;
 
 function CarModal({ car, isOpen, onClose }) {
     const { t } = useLanguage();
     const [isPlaying, setIsPlaying] = useState(false);
+    const [activeIndex, setActiveIndex] = useState(0);
+    const [direction, setDirection] = useState(1);
     const audioRef = useRef(null);
+    const timerRef = useRef(null);
 
-    // Блокировка скролла фона
+    const images = car?.images?.length > 0 ? car.images : car ? [car.image] : [];
+    const hasMultiple = images.length > 1;
+
+    useEffect(() => {
+        if (isOpen) {
+            setActiveIndex(0);
+            setDirection(1);
+        }
+    }, [isOpen, car?.id]);
+
+    // Auto-advance timer — pauses when only 1 image
+    const startTimer = useCallback(() => {
+        if (!hasMultiple) return;
+        clearInterval(timerRef.current);
+        timerRef.current = setInterval(() => {
+            setDirection(1);
+            setActiveIndex((i) => (i + 1) % images.length);
+        }, SLIDE_INTERVAL);
+    }, [hasMultiple, images.length]);
+
+    useEffect(() => {
+        if (isOpen && hasMultiple) {
+            startTimer();
+        }
+        return () => clearInterval(timerRef.current);
+    }, [isOpen, hasMultiple, startTimer]);
+
+    const goTo = useCallback((index) => {
+        setDirection(index > activeIndex ? 1 : -1);
+        setActiveIndex(index);
+        startTimer(); // reset timer on manual nav
+    }, [activeIndex, startTimer]);
+
+    const prev = useCallback(() => {
+        setDirection(-1);
+        setActiveIndex((i) => (i - 1 + images.length) % images.length);
+        startTimer();
+    }, [images.length, startTimer]);
+
+    const next = useCallback(() => {
+        setDirection(1);
+        setActiveIndex((i) => (i + 1) % images.length);
+        startTimer();
+    }, [images.length, startTimer]);
+
+    // Keyboard navigation
     useEffect(() => {
         if (!isOpen) return;
+        const onKey = (e) => {
+            if (e.key === "ArrowLeft") prev();
+            else if (e.key === "ArrowRight") next();
+            else if (e.key === "Escape") onClose();
+        };
+        window.addEventListener("keydown", onKey);
+        return () => window.removeEventListener("keydown", onKey);
+    }, [isOpen, prev, next, onClose]);
 
+    // Scroll lock
+    useEffect(() => {
+        if (!isOpen) return;
         const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
-        const originalHtmlOverflow = document.documentElement.style.overflow;
-        const originalBodyOverflow = document.body.style.overflow;
-        const originalPadding = document.body.style.paddingRight;
+        const origHtml = document.documentElement.style.overflow;
+        const origBody = document.body.style.overflow;
+        const origPad = document.body.style.paddingRight;
 
-        document.documentElement.style.overflow = 'hidden';
-        document.body.style.overflow = 'hidden';
-
-        if (scrollBarWidth > 0) {
-            document.body.style.paddingRight = `${scrollBarWidth}px`;
-        }
+        document.documentElement.style.overflow = "hidden";
+        document.body.style.overflow = "hidden";
+        if (scrollBarWidth > 0) document.body.style.paddingRight = `${scrollBarWidth}px`;
 
         const preventScroll = (e) => {
-            const scrollableDiv = document.getElementById('modal-scrollable-content');
-            if (scrollableDiv && scrollableDiv.contains(e.target)) return;
+            const scrollable = document.getElementById("modal-scrollable-content");
+            if (scrollable && scrollable.contains(e.target)) return;
             e.preventDefault();
         };
-
-        window.addEventListener('wheel', preventScroll, { passive: false });
-        window.addEventListener('touchmove', preventScroll, { passive: false });
+        window.addEventListener("wheel", preventScroll, { passive: false });
+        window.addEventListener("touchmove", preventScroll, { passive: false });
 
         return () => {
-            document.documentElement.style.overflow = originalHtmlOverflow;
-            document.body.style.overflow = originalBodyOverflow;
-            document.body.style.paddingRight = originalPadding;
-            window.removeEventListener('wheel', preventScroll);
-            window.removeEventListener('touchmove', preventScroll);
+            document.documentElement.style.overflow = origHtml;
+            document.body.style.overflow = origBody;
+            document.body.style.paddingRight = origPad;
+            window.removeEventListener("wheel", preventScroll);
+            window.removeEventListener("touchmove", preventScroll);
         };
     }, [isOpen]);
 
-    // Логика аудио
+    // Audio
     useEffect(() => {
         const audio = audioRef.current;
         if (isOpen && car && audio) {
             audio.pause();
             audio.src = car.audio;
             audio.load();
-
             const playAudio = () => {
-                audio.play()
-                    .then(() => setIsPlaying(true))
-                    .catch(() => console.log("Autoplay blocked"));
+                audio.play().then(() => setIsPlaying(true)).catch(() => {});
             };
-
-            audio.addEventListener('canplaythrough', playAudio, { once: true });
+            audio.addEventListener("canplaythrough", playAudio, { once: true });
             return () => {
-                audio.removeEventListener('canplaythrough', playAudio);
+                audio.removeEventListener("canplaythrough", playAudio);
                 audio.pause();
             };
         }
@@ -76,6 +129,12 @@ function CarModal({ car, isOpen, onClose }) {
     };
 
     if (!car || !isOpen) return null;
+
+    const slideVariants = {
+        enter: (dir) => ({ x: dir > 0 ? "100%" : "-100%", opacity: 0 }),
+        center: { x: 0, opacity: 1 },
+        exit: (dir) => ({ x: dir > 0 ? "-100%" : "100%", opacity: 0 }),
+    };
 
     return createPortal(
         <motion.div
@@ -97,7 +156,6 @@ function CarModal({ car, isOpen, onClose }) {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 20, scale: 0.95 }}
                 onClick={(e) => e.stopPropagation()}
-                // Высота автоматически подстраивается под контент, но не больше 95% экрана
                 className="relative flex w-full max-w-[1000px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#0a0a0a] shadow-2xl max-h-[95vh] md:max-h-[85vh] md:flex-row"
             >
                 <button
@@ -108,31 +166,87 @@ function CarModal({ car, isOpen, onClose }) {
                     <X size={18} />
                 </button>
 
-                {/* Уменьшена высота картинки для мобильных (180px), чтобы дать место тексту */}
-                <div className="relative h-[180px] w-full shrink-0 sm:h-[220px] md:h-auto md:w-5/12 lg:w-1/2">
-                    <img src={car.image} alt={car.name} className="h-full w-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-[#0a0a0a]" />
+                {/* Image panel */}
+                <div className="relative h-[220px] w-full shrink-0 overflow-hidden sm:h-[260px] md:h-auto md:w-5/12 lg:w-1/2">
+                    <AnimatePresence initial={false} custom={direction} mode="sync">
+                        <motion.img
+                            key={activeIndex}
+                            src={images[activeIndex]}
+                            alt={`${car.name} — photo ${activeIndex + 1}`}
+                            custom={direction}
+                            variants={slideVariants}
+                            initial="enter"
+                            animate="center"
+                            exit="exit"
+                            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                            className="absolute inset-0 h-full w-full object-cover"
+                        />
+                    </AnimatePresence>
 
+                    {/* Gradient overlay */}
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-[#0a0a0a]" />
+
+                    {/* Prev / Next arrows — only when multiple images */}
+                    {hasMultiple && (
+                        <>
+                            <button
+                                onClick={prev}
+                                aria-label="Previous photo"
+                                className="absolute left-3 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm transition hover:bg-[#dcc19a] hover:text-black md:left-4 md:h-9 md:w-9"
+                            >
+                                <ChevronLeft size={18} />
+                            </button>
+                            <button
+                                onClick={next}
+                                aria-label="Next photo"
+                                className="absolute right-3 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm transition hover:bg-[#dcc19a] hover:text-black md:right-4 md:h-9 md:w-9"
+                            >
+                                <ChevronRight size={18} />
+                            </button>
+                        </>
+                    )}
+
+                    {/* Dot indicators */}
+                    {hasMultiple && (
+                        <div className="absolute bottom-14 left-1/2 z-10 flex -translate-x-1/2 gap-1.5 md:bottom-16">
+                            {images.map((_, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => goTo(i)}
+                                    aria-label={`Photo ${i + 1}`}
+                                    className={`h-1.5 rounded-full transition-all duration-300 ${
+                                        i === activeIndex
+                                            ? "w-5 bg-[#dcc19a]"
+                                            : "w-1.5 bg-white/40 hover:bg-white/70"
+                                    }`}
+                                />
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Audio button */}
                     <button
                         onClick={toggleAudio}
-                        className={`absolute bottom-4 left-4 flex items-center gap-2 rounded-full px-4 py-2 text-xs font-medium transition backdrop-blur-md md:bottom-6 md:left-6 md:px-5 md:py-3 md:text-sm ${isPlaying ? 'bg-[#dcc19a] text-black' : 'bg-black/50 text-white'}`}
+                        className={`absolute bottom-4 left-4 z-10 flex items-center gap-2 rounded-full px-4 py-2 text-xs font-medium transition backdrop-blur-md md:bottom-6 md:left-6 md:px-5 md:py-3 md:text-sm ${
+                            isPlaying ? "bg-[#dcc19a] text-black" : "bg-black/50 text-white"
+                        }`}
                     >
                         {isPlaying ? <VolumeX size={16} /> : <Volume2 size={16} />}
                         {isPlaying ? t("modal.stop_sound") : t("modal.play_sound")}
                     </button>
                 </div>
 
-                {/* Контент: отступы и размеры шрифтов уплотнены */}
+                {/* Content */}
                 <div
                     id="modal-scrollable-content"
                     className="flex w-full flex-col overflow-y-auto p-5 text-white sm:p-6 md:w-7/12 md:p-8 lg:w-1/2"
-                    style={{ overscrollBehavior: 'contain' }}
+                    style={{ overscrollBehavior: "contain" }}
                 >
                     <div className="text-[10px] font-medium uppercase tracking-[0.24em] text-[#dcc19a] md:text-xs">
                         {car.year}
                     </div>
 
-                    <h2 className="mt-1 text-2xl font-serif leading-tight sm:text-3xl md:mt-2 md:text-4xl">
+                    <h2 className="mt-1 font-serif text-2xl leading-tight sm:text-3xl md:mt-2 md:text-4xl">
                         {car.name}
                     </h2>
 
@@ -140,7 +254,6 @@ function CarModal({ car, isOpen, onClose }) {
                         {car.description}
                     </p>
 
-                    {/* Характеристики: теперь в 3 колонки (grid-cols-3) на мобильных */}
                     <div className="mt-4 border-t border-white/10 pt-4 md:mt-6 md:pt-6">
                         <h3 className="mb-3 text-start text-[10px] font-semibold uppercase tracking-wider text-white/50 md:text-xs">
                             {t("modal.specs_title")}
@@ -148,13 +261,11 @@ function CarModal({ car, isOpen, onClose }) {
 
                         <div className="grid grid-cols-3 gap-x-2 gap-y-3 sm:gap-x-4 sm:gap-y-4 md:grid-cols-2 lg:grid-cols-3">
                             {Object.entries(car.specs).map(([key, value]) => (
-                                // Добавили text-start на весь контейнер характеристики
                                 <div key={key} className="flex flex-col gap-0.5 text-start">
-                            <span className="text-[9px] text-white/40 uppercase tracking-wider sm:text-[10px] md:text-xs">
-                                {t(`modal.specs.${key}`)}
-                            </span>
+                                    <span className="text-[9px] text-white/40 uppercase tracking-wider sm:text-[10px] md:text-xs">
+                                        {t(`modal.specs.${key}`)}
+                                    </span>
                                     <span className="text-xs font-medium text-white/90 sm:text-sm">
-
                                         <bdi>{value}</bdi>
                                     </span>
                                 </div>

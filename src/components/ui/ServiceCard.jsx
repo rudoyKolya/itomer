@@ -27,7 +27,7 @@ function ServiceCard({ service, index }) {
                 delay: index * 0.15,
                 ease: [0.22, 1, 0.36, 1],
             }}
-            className="group relative flex h-full flex-col justify-between overflow-hidden rounded-[24px] border border-[#2d2621]/5 bg-white p-8 transition-all duration-500 lg:hover:-translate-y-2 lg:hover:border-[#dcc19a]/50 lg:hover:shadow-[0_20px_40px_-15px_rgba(220,193,154,0.3)]"
+            className="group relative flex h-full flex-col justify-between rounded-[24px] border border-[#2d2621]/5 bg-white p-8 transition-all duration-500 lg:hover:-translate-y-2 lg:hover:border-[#dcc19a]/50 lg:hover:shadow-[0_20px_40px_-15px_rgba(220,193,154,0.3)]"
             onMouseMove={handleMouseMove}
         >
             <div

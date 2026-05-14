@@ -1,8 +1,7 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Menu, X, Globe, ChevronDown } from "lucide-react";
 import { useLanguage } from "../../context/useLanguage";
-
-const HEADER_OFFSET = 88;
+import { scrollToSection, scrollToFeaturedStart } from "../../utils/scrollTo";
 
 const LANGUAGES = [
     { code: "cs", label: "Čeština", short: "CZ" },
@@ -12,8 +11,9 @@ const LANGUAGES = [
     { code: "pl", label: "Polski", short: "PL" },
     { code: "es", label: "Español", short: "ES" },
     { code: "it", label: "Italiano", short: "IT" },
-    { code: "uk", label: "Українська", short: "UA" },
-    { code: "be", label: "Беларуская", short: "BY" },
+    { code: "pt", label: "Português", short: "PT" },
+    { code: "tr", label: "Türkçe", short: "TR" },
+    { code: "nl", label: "Nederlands", short: "NL" },
     { code: "ar", label: "العربية", short: "AR" },
 ];
 
@@ -40,6 +40,8 @@ function Header() {
     }, [isMenuOpen]);
 
     useEffect(() => {
+        if (!isLangMenuOpen) return;
+
         const handleClickOutside = (event) => {
             if (langMenuRef.current && !langMenuRef.current.contains(event.target)) {
                 setIsLangMenuOpen(false);
@@ -51,42 +53,25 @@ function Header() {
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
-    }, []);
+    }, [isLangMenuOpen]);
 
-    const navItems = [
+    const navItems = useMemo(() => [
         { label: t("nav.home"), id: "home" },
         { label: t("nav.about"), id: "about" },
         { label: t("nav.services"), id: "services" },
         { label: t("nav.featured"), id: "featured" },
         { label: t("nav.contact"), id: "contact" },
-    ];
+    ], [t]);
 
     const handleNavClick = (event, targetId) => {
         event?.preventDefault();
 
-        const target = document.getElementById(targetId);
-
-        if (!target) {
-            setIsMenuOpen(false);
-            return;
+        if (targetId === "featured") {
+            scrollToFeaturedStart();
+        } else {
+            const extraOffset = targetId === "about" ? 120 : 0;
+            scrollToSection(targetId, extraOffset);
         }
-
-        const pinSpacer = target.closest(".pin-spacer");
-        const measureElement = pinSpacer || target;
-        const absoluteTop = measureElement.getBoundingClientRect().top + window.scrollY;
-
-        let extraOffset = targetId === "about" ? 120 : 0;
-
-        if (targetId === "featured" && window.innerWidth >= 1024) {
-            extraOffset += window.innerWidth * 0.7;
-        }
-
-        const finalScrollTarget = absoluteTop - HEADER_OFFSET + extraOffset;
-
-        window.scrollTo({
-            top: finalScrollTarget,
-            behavior: "smooth",
-        });
 
         setIsMenuOpen(false);
         setIsLangMenuOpen(false);
@@ -107,13 +92,13 @@ function Header() {
                         ITOMER
                     </a>
 
-                    <nav className="hidden gap-10 text-sm text-white/70 lg:flex" aria-label="Main navigation">
+                    <nav className="hidden gap-2 text-sm text-white/70 lg:flex" aria-label="Main navigation">
                         {navItems.map((item) => (
                             <a
                                 key={item.id}
                                 href={`#${item.id}`}
                                 onClick={(event) => handleNavClick(event, item.id)}
-                                className="transition hover:text-white"
+                                className="px-4 py-2 transition hover:text-white"
                             >
                                 {item.label}
                             </a>

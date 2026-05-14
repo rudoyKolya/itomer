@@ -6,19 +6,26 @@ function CustomCursor() {
     const followerRef = useRef(null);
 
     useEffect(() => {
-        // Убираем курсор на мобильных устройствах
-        if (window.matchMedia("(max-width: 1024px)").matches) return;
+        const mq = window.matchMedia("(max-width: 1024px)");
+        if (mq.matches) return;
 
         const cursor = cursorRef.current;
         const follower = followerRef.current;
 
-        // Инициализация центра
         gsap.set([cursor, follower], { xPercent: -50, yPercent: -50, opacity: 0 });
 
         const xTo = gsap.quickTo(follower, "x", { duration: 0.6, ease: "power3" });
         const yTo = gsap.quickTo(follower, "y", { duration: 0.6, ease: "power3" });
 
         let isVisible = false;
+
+        const handleMqChange = (e) => {
+            if (e.matches) {
+                gsap.set([cursor, follower], { opacity: 0 });
+                isVisible = false;
+            }
+        };
+        mq.addEventListener("change", handleMqChange);
 
         const onMouseMove = (e) => {
             // Показываем курсор при первом движении
@@ -35,35 +42,43 @@ function CustomCursor() {
 
         // --- СОСТОЯНИЯ (фиксированные цвета, никакой инверсии) ---
 
-        // 1. Обычное состояние (Золотая точка и золотое кольцо)
+        // 1. Обычное состояние
         const setIdleState = () => {
             gsap.to(follower, {
                 width: 30, height: 30, borderRadius: "50%",
-                backgroundColor: "transparent", borderWidth: "1px",
-                borderColor: "#dcc19a", duration: 0.3
+                backgroundColor: "transparent", borderWidth: "1.5px",
+                borderColor: "#dcc19a",
+                boxShadow: "0 0 0 1px rgba(0,0,0,0.25)",
+                duration: 0.3,
             });
-            // Центральная точка здесь всегда есть
-            gsap.to(cursor, { opacity: 1, scale: 1, width: 6, height: 6, backgroundColor: "#dcc19a", duration: 0.3 });
+            gsap.to(cursor, {
+                opacity: 1, scale: 1, width: 7, height: 7,
+                backgroundColor: "#dcc19a",
+                boxShadow: "0 0 0 1.5px rgba(0,0,0,0.35)",
+                duration: 0.3,
+            });
         };
 
-        // 2. Увеличенное состояние при наведении на кнопки/ссылки
+        // 2. Hover на кнопки/ссылки
         const setHoverState = () => {
             gsap.to(follower, {
                 width: 50, height: 50, borderRadius: "50%",
-                backgroundColor: "rgba(220, 193, 154, 0.15)", borderColor: "#dcc19a",
-                borderWidth: "1.5px", duration: 0.3
+                backgroundColor: "rgba(220,193,154,0.18)", borderColor: "#dcc19a",
+                borderWidth: "1.5px",
+                boxShadow: "0 0 0 1px rgba(0,0,0,0.2)",
+                duration: 0.3,
             });
             gsap.to(cursor, { scale: 0.8, backgroundColor: "#dcc19a", duration: 0.3 });
         };
 
-        // 3. Форма ввода (Внешний индикатор ввода, точка скрыта)
+        // 3. Текстовое поле
         const setTextState = () => {
             gsap.to(follower, {
                 width: 3, height: 28, borderRadius: "2px",
                 backgroundColor: "#dcc19a", borderWidth: "0px",
-                duration: 0.3
+                boxShadow: "0 0 0 1px rgba(0,0,0,0.3)",
+                duration: 0.3,
             });
-            // Скрываем центральную точку ТОЧНО и мгновенно над текстом
             gsap.to(cursor, { opacity: 0, duration: 0.1 });
         };
 
@@ -97,6 +112,7 @@ function CustomCursor() {
         document.addEventListener("mouseenter", handleMouseEnter);
 
         return () => {
+            mq.removeEventListener("change", handleMqChange);
             window.removeEventListener("mousemove", onMouseMove);
             document.removeEventListener("mouseover", handleMouseOver);
             document.removeEventListener("mouseleave", handleMouseLeave);

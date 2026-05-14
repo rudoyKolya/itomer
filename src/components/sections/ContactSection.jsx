@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Mail, Phone, Star } from "lucide-react";
 import { useLanguage } from "../../context/useLanguage";
+import { handleAnchorClick, scrollToFeaturedStart } from "../../utils/scrollTo";
 
 const initialFormState = {
     name: "",
@@ -79,8 +80,6 @@ function ContactSection() {
                 phone: formData.phone.trim(),
                 message: formData.message.trim(),
             };
-
-            console.log("Contact form payload:", payload);
 
             await new Promise((resolve) => {
                 setTimeout(resolve, 500);
@@ -258,16 +257,27 @@ function ContactSection() {
                     </div>
 
                     <div className="mt-10">
-                        <h3 className="font-serif text-4xl text-[#2d2621]">
-                            {t("nav.contact")}
-                        </h3>
-
                         <div className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-sm uppercase tracking-[0.18em] text-[#8d857c]">
-                            <span>{t("nav.home")}</span>
-                            <span>{t("nav.about")}</span>
-                            <span>{t("nav.services")}</span>
-                            <span>{t("nav.featured")}</span>
-                            <span>{t("nav.contact")}</span>
+                            {[
+                                { label: t("nav.home"), id: "home" },
+                                { label: t("nav.about"), id: "about" },
+                                { label: t("nav.services"), id: "services" },
+                                { label: t("nav.featured"), id: "featured" },
+                                { label: t("nav.contact"), id: "contact" },
+                            ].map((item) => (
+                                <a
+                                    key={item.id}
+                                    href={`#${item.id}`}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        if (item.id === "featured") scrollToFeaturedStart();
+                                        else handleAnchorClick(e, item.id);
+                                    }}
+                                    className="transition hover:text-[#b28a58]"
+                                >
+                                    {item.label}
+                                </a>
+                            ))}
                         </div>
 
                         <p className="mt-10 text-sm text-[#948c84]">

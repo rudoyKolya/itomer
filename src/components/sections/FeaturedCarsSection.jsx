@@ -1,4 +1,4 @@
-import { lazy, Suspense, useLayoutEffect, useRef, useState } from "react";
+import { lazy, Suspense, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { AnimatePresence } from "framer-motion";
@@ -11,114 +11,57 @@ gsap.registerPlugin(ScrollTrigger);
 
 const baseUrl = import.meta.env.BASE_URL;
 
-const baseCarsData = [
+const carImages = (folder, count) =>
+    Array.from({ length: count }, (_, index) => `${baseUrl}images/cars/${folder}/${folder}-${index + 1}.jpg`);
+
+const carAssetsData = [
     {
-        id: "ferrari",
-        year: "2023",
-        image: `${baseUrl}images/cars/ferrari-sf90.avif`,
-        audio: `${baseUrl}audio/cars/ferrari-sf90.mp3`,
-        specs: {
-            engine: "4.0L V8 Hybrid",
-            power: "1,000 hp",
-            acceleration: "2.5 sec",
-            top_speed: "340 km/h",
-            transmission: "8-Speed DCT",
-            drivetrain: "AWD",
-            mileage: "2,500 km",
-            fuel: "Hybrid",
-            body: "Coupe",
-            condition: "Like New",
-        },
+        id: "bentley_bentayga_s",
+        image: `${baseUrl}images/cars/Bentley_Bentayga_S/Bentley_Bentayga_S-1.jpg`,
+        images: carImages("Bentley_Bentayga_S", 3),
+        audio: `${baseUrl}audio/cars/Bentley_Bentayga_S.mp3`,
     },
     {
-        id: "lamborghini",
-        year: "2022",
-        image: `${baseUrl}images/cars/lamborghini-urus.avif`,
-        audio: `${baseUrl}audio/cars/lamborghini-urus.mp3`,
-        specs: {
-            engine: "4.0L V8 Turbo",
-            power: "641 hp",
-            acceleration: "3.6 sec",
-            top_speed: "305 km/h",
-            transmission: "8-Speed Auto",
-            drivetrain: "AWD",
-            mileage: "18,000 km",
-            fuel: "Petrol",
-            body: "SUV",
-            condition: "Excellent",
-        },
+        id: "bmw_m8_competition_cabriolet",
+        image: `${baseUrl}images/cars/BMW_M8_Competition/BMW_M8_Competition-1.jpg`,
+        images: carImages("BMW_M8_Competition", 3),
+        audio: `${baseUrl}audio/cars/BMW_M8_Competition.mp3`,
     },
     {
-        id: "porsche",
-        year: "2024",
-        image: `${baseUrl}images/cars/porsche-911.avif`,
-        audio: `${baseUrl}audio/cars/porsche-911.mp3`,
-        specs: {
-            engine: "3.8L Flat-6",
-            power: "640 hp",
-            acceleration: "2.6 sec",
-            top_speed: "330 km/h",
-            transmission: "8-Speed PDK",
-            drivetrain: "AWD",
-            mileage: "1,200 km",
-            fuel: "Petrol",
-            body: "Coupe",
-            condition: "New",
-        },
+        id: "ferrari_296_gts",
+        image: `${baseUrl}images/cars/ferrari_296_GTS_supercar_technology/ferrari_296_GTS_supercar_technology-1.jpg`,
+        images: carImages("ferrari_296_GTS_supercar_technology", 5),
+        audio: `${baseUrl}audio/cars/ferrari_296_GTS_supercar_technology.mp3`,
     },
     {
-        id: "mercedes",
-        year: "2023",
-        image: `${baseUrl}images/cars/amg-gt.avif`,
-        audio: `${baseUrl}audio/cars/amg-gt.mp3`,
-        specs: {
-            engine: "4.0L V8 BiTurbo",
-            power: "523 hp",
-            acceleration: "3.7 sec",
-            top_speed: "312 km/h",
-            transmission: "7-Speed DCT",
-            drivetrain: "RWD",
-            mileage: "8,500 km",
-            fuel: "Petrol",
-            body: "Coupe",
-            condition: "Excellent",
-        },
+        id: "ferrari_purosangue",
+        image: `${baseUrl}images/cars/Ferrari_Purosangue/Ferrari_Purosangue-1.jpg`,
+        images: carImages("Ferrari_Purosangue", 3),
+        audio: `${baseUrl}audio/cars/Ferrari_Purosangue.mp3`,
     },
     {
-        id: "bentley",
-        year: "2022",
-        image: `${baseUrl}images/cars/bentley-gt.avif`,
-        audio: `${baseUrl}audio/cars/bentley-gt.mp3`,
-        specs: {
-            engine: "6.0L W12 Turbo",
-            power: "626 hp",
-            acceleration: "3.6 sec",
-            top_speed: "333 km/h",
-            transmission: "8-Speed DCT",
-            drivetrain: "AWD",
-            mileage: "12,000 km",
-            fuel: "Petrol",
-            body: "Coupe",
-            condition: "Excellent",
-        },
+        id: "ferrari_12cilindri",
+        image: `${baseUrl}images/cars/ferrarri_12cilindri/ferrarri_12cilindri-1.jpg`,
+        images: carImages("ferrarri_12cilindri", 5),
+        audio: `${baseUrl}audio/cars/ferrarri_12cilindri.mp3`,
     },
     {
-        id: "aston_martin",
-        year: "2023",
-        image: `${baseUrl}images/cars/aston-martin-db11.avif`,
-        audio: `${baseUrl}audio/cars/aston-martin-db11.mp3`,
-        specs: {
-            engine: "4.0L V8 Turbo",
-            power: "528 hp",
-            acceleration: "4.0 sec",
-            top_speed: "309 km/h",
-            transmission: "8-Speed Auto",
-            drivetrain: "RWD",
-            mileage: "5,000 km",
-            fuel: "Petrol",
-            body: "Coupe",
-            condition: "Like New",
-        },
+        id: "mercedes_amg_sl_63_roadster",
+        image: `${baseUrl}images/cars/MercedesBenz_SL_63_AMG/MercedesBenz_SL_63_AMG-1.jpg`,
+        images: carImages("MercedesBenz_SL_63_AMG", 5),
+        audio: `${baseUrl}audio/cars/MercedesBenz_SL_63_AMG.mp3`,
+    },
+    {
+        id: "mercedes_amg_g_63",
+        image: `${baseUrl}images/cars/Mercedes_AMG_G_63_Iconic/Mercedes_AMG_G_63_Iconic-1.jpg`,
+        images: carImages("Mercedes_AMG_G_63_Iconic", 4),
+        audio: `${baseUrl}audio/cars/Mercedes_AMG_G_63_Iconic.mp3`,
+    },
+    {
+        id: "porsche_911_turbo_s_cabriolet",
+        image: `${baseUrl}images/cars/porsche_911/porsche_911-1.jpg`,
+        images: carImages("porsche_911", 6),
+        audio: `${baseUrl}audio/cars/porsche_911.mp3`,
     },
 ];
 
@@ -130,11 +73,21 @@ function FeaturedCarsSection() {
     const sectionRef = useRef(null);
     const trackRef = useRef(null);
 
-    const localizedCarsData = baseCarsData.map((car) => ({
-        ...car,
-        name: t(`cars.${car.id}.name`),
-        description: t(`cars.${car.id}.description`),
-    }));
+    const localizedCarsData = useMemo(
+        () => carAssetsData.map((car) => {
+            const translation = t(`cars.${car.id}`);
+            const hasTranslation = translation && typeof translation === "object";
+
+            return {
+                ...car,
+                name: hasTranslation ? translation.name : car.id,
+                description: hasTranslation ? translation.description : "",
+                year: hasTranslation ? translation.year : "",
+                specs: hasTranslation ? translation.specs : {},
+            };
+        }),
+        [t]
+    );
 
     useLayoutEffect(() => {
         const section = sectionRef.current;
@@ -217,7 +170,7 @@ function FeaturedCarsSection() {
         });
 
         return () => mm.revert();
-    }, [isRtl, language]);
+    }, [isRtl]);
 
     return (
         <section
@@ -240,6 +193,7 @@ function FeaturedCarsSection() {
 
                 <div
                     ref={trackRef}
+                    data-track=""
                     className="flex flex-col items-center gap-10 px-5 will-change-transform md:px-8 lg:h-[500px] lg:flex-row lg:items-start lg:gap-8 lg:px-20"
                 >
                     {localizedCarsData.map((car) => (

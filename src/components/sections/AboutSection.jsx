@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useMemo, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useLanguage } from "../../context/useLanguage";
@@ -53,28 +53,12 @@ function AboutSection() {
     const cardsTrackRef = useRef(null);
     const mobileCardRefs = useRef([]);
 
-    const aboutPoints = [
-        {
-            number: "01",
-            title: t("about.point_01_title"),
-            description: t("about.point_01_desc"),
-        },
-        {
-            number: "02",
-            title: t("about.point_02_title"),
-            description: t("about.point_02_desc"),
-        },
-        {
-            number: "03",
-            title: t("about.point_03_title"),
-            description: t("about.point_03_desc"),
-        },
-        {
-            number: "04",
-            title: t("about.point_04_title"),
-            description: t("about.point_04_desc"),
-        },
-    ];
+    const aboutPoints = useMemo(() => [
+        { number: "01", title: t("about.point_01_title"), description: t("about.point_01_desc") },
+        { number: "02", title: t("about.point_02_title"), description: t("about.point_02_desc") },
+        { number: "03", title: t("about.point_03_title"), description: t("about.point_03_desc") },
+        { number: "04", title: t("about.point_04_title"), description: t("about.point_04_desc") },
+    ], [t]);
 
     useLayoutEffect(() => {
         const section = sectionRef.current;
