@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import ServiceCard from "../ui/ServiceCard";
-import { useLanguage } from "../../context/LanguageContext";
+import { useLanguage } from "../../context/useLanguage";
 import { Search, ShieldCheck, CircleDollarSign, Truck } from "lucide-react";
 
 function ServicesSection() {

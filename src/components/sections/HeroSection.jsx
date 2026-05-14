@@ -1,5 +1,5 @@
 import heroBg from "../../assets/hero/hero-full.webp";
-import { useLanguage } from "../../context/LanguageContext";
+import { useLanguage } from "../../context/useLanguage";
 
 function HeroSection() {
     const { t } = useLanguage();

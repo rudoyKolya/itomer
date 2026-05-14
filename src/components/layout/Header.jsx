@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { Menu, X, Globe, ChevronDown } from "lucide-react";
-import { useLanguage } from "../../context/LanguageContext";
+import { useLanguage } from "../../context/useLanguage";
 
 const HEADER_OFFSET = 88;
 
-// Добавили short для красивых квадратных кнопок на мобилках
 const LANGUAGES = [
     { code: "cs", label: "Čeština", short: "CZ" },
     { code: "en", label: "English", short: "EN" },
@@ -15,7 +14,7 @@ const LANGUAGES = [
     { code: "it", label: "Italiano", short: "IT" },
     { code: "uk", label: "Українська", short: "UA" },
     { code: "be", label: "Беларуская", short: "BY" },
-    { code: "ar", label: "العربية", short: "AR" }
+    { code: "ar", label: "العربية", short: "AR" },
 ];
 
 function Header() {
@@ -25,7 +24,6 @@ function Header() {
     const { language, setLanguage, t } = useLanguage();
     const langMenuRef = useRef(null);
 
-    // Усиленная блокировка скролла
     useEffect(() => {
         if (isMenuOpen) {
             document.body.style.overflow = "hidden";
@@ -34,21 +32,25 @@ function Header() {
             document.body.style.overflow = "";
             document.documentElement.style.overflow = "";
         }
+
         return () => {
             document.body.style.overflow = "";
             document.documentElement.style.overflow = "";
         };
     }, [isMenuOpen]);
 
-    // Закрытие десктопного дропдауна
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (langMenuRef.current && !langMenuRef.current.contains(event.target)) {
                 setIsLangMenuOpen(false);
             }
         };
+
         document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
     }, []);
 
     const navItems = [
@@ -60,15 +62,21 @@ function Header() {
     ];
 
     const handleNavClick = (event, targetId) => {
-        event.preventDefault();
-        const target = document.getElementById(targetId);
-        if (!target) return;
+        event?.preventDefault();
 
-        const pinSpacer = target.closest('.pin-spacer');
-        const measureElement = pinSpacer ? pinSpacer : target;
+        const target = document.getElementById(targetId);
+
+        if (!target) {
+            setIsMenuOpen(false);
+            return;
+        }
+
+        const pinSpacer = target.closest(".pin-spacer");
+        const measureElement = pinSpacer || target;
         const absoluteTop = measureElement.getBoundingClientRect().top + window.scrollY;
 
         let extraOffset = targetId === "about" ? 120 : 0;
+
         if (targetId === "featured" && window.innerWidth >= 1024) {
             extraOffset += window.innerWidth * 0.7;
         }
@@ -77,10 +85,11 @@ function Header() {
 
         window.scrollTo({
             top: finalScrollTarget,
-            behavior: "smooth"
+            behavior: "smooth",
         });
 
         setIsMenuOpen(false);
+        setIsLangMenuOpen(false);
     };
 
     return (
@@ -111,28 +120,46 @@ function Header() {
                         ))}
                     </nav>
 
-                    <div className="hidden lg:flex items-center gap-6">
+                    <div className="hidden items-center gap-6 lg:flex">
                         <div className="relative" ref={langMenuRef}>
                             <button
-                                onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
+                                type="button"
+                                onClick={() => setIsLangMenuOpen((value) => !value)}
                                 className="flex items-center gap-1.5 text-white/70 transition hover:text-white"
                                 aria-label="Select Language"
+                                aria-expanded={isLangMenuOpen}
                             >
                                 <Globe size={16} />
                                 <span className="text-xs font-medium uppercase">{language}</span>
-                                <ChevronDown size={14} className={`transition-transform duration-300 ${isLangMenuOpen ? "rotate-180" : ""}`} />
+                                <ChevronDown
+                                    size={14}
+                                    className={`transition-transform duration-300 ${
+                                        isLangMenuOpen ? "rotate-180" : ""
+                                    }`}
+                                />
                             </button>
 
-                            <div className={`absolute right-0 top-full mt-4 w-40 overflow-hidden rounded-xl border border-white/10 bg-[#050506]/95 backdrop-blur-xl shadow-2xl transition-all duration-300 origin-top ${isLangMenuOpen ? "scale-100 opacity-100 visible" : "scale-95 opacity-0 invisible"}`}>
-                                <div className="max-h-[60vh] overflow-y-auto py-2 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/20">
+                            <div
+                                className={`absolute right-0 top-full mt-4 w-40 origin-top overflow-hidden rounded-xl border border-white/10 bg-[#050506]/95 shadow-2xl backdrop-blur-xl transition-all duration-300 ${
+                                    isLangMenuOpen
+                                        ? "visible scale-100 opacity-100"
+                                        : "invisible scale-95 opacity-0"
+                                }`}
+                            >
+                                <div className="max-h-[60vh] overflow-y-auto py-2 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-track]:bg-transparent">
                                     {LANGUAGES.map((lang) => (
                                         <button
                                             key={lang.code}
+                                            type="button"
                                             onClick={() => {
                                                 setLanguage(lang.code);
                                                 setIsLangMenuOpen(false);
                                             }}
-                                            className={`flex w-full items-center px-4 py-2.5 text-sm transition-colors hover:bg-white/10 ${language === lang.code ? "text-[#dcc19a] bg-white/5" : "text-white/70"}`}
+                                            className={`flex w-full items-center px-4 py-2.5 text-sm transition-colors hover:bg-white/10 ${
+                                                language === lang.code
+                                                    ? "bg-white/5 text-[#dcc19a]"
+                                                    : "text-white/70"
+                                            }`}
                                         >
                                             {lang.label}
                                         </button>
@@ -141,7 +168,11 @@ function Header() {
                             </div>
                         </div>
 
-                        <button className="rounded-xl bg-[#dcc19a] px-5 py-2.5 text-sm font-bold text-[#1a1a1a] transition hover:bg-[#e7ccab]">
+                        <button
+                            type="button"
+                            onClick={(event) => handleNavClick(event, "contact")}
+                            className="rounded-xl bg-[#dcc19a] px-5 py-2.5 text-sm font-bold text-[#1a1a1a] transition hover:bg-[#e7ccab]"
+                        >
                             {t("buttons.contact_us")}
                         </button>
                     </div>
@@ -151,41 +182,38 @@ function Header() {
                         onClick={() => setIsMenuOpen((value) => !value)}
                         aria-label={isMenuOpen ? "Close menu" : "Open menu"}
                         aria-expanded={isMenuOpen}
-                        className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-white transition hover:bg-white/[0.08] lg:hidden relative z-50"
+                        className="relative z-50 flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-white transition hover:bg-white/[0.08] lg:hidden"
                     >
                         {isMenuOpen ? <X size={22} /> : <Menu size={22} />}
                     </button>
                 </div>
             </header>
 
-            {/* Мобильное меню на весь экран */}
-            <div className={`lg:hidden fixed inset-0 z-40 bg-[#050506] flex flex-col pt-[76px] md:pt-[88px] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${isMenuOpen ? "translate-x-0 opacity-100 visible" : "translate-x-full opacity-0 invisible"}`}>
-
-                {/* overscroll-none железно запрещает скроллу пробиваться к body */}
-                <div className="flex-1 overflow-y-auto overscroll-none px-6 py-8 flex flex-col">
-
-                    {/* Меню */}
-                    <nav className="flex flex-col gap-6 flex-1">
+            <div
+                className={`fixed inset-0 z-40 flex flex-col bg-[#050506] pt-[76px] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] md:pt-[88px] lg:hidden ${
+                    isMenuOpen ? "visible translate-x-0 opacity-100" : "invisible translate-x-full opacity-0"
+                }`}
+            >
+                <div className="flex flex-1 flex-col overflow-y-auto overscroll-none px-6 py-8">
+                    <nav className="flex flex-1 flex-col gap-6">
                         {navItems.map((item) => (
                             <a
                                 key={item.id}
                                 href={`#${item.id}`}
                                 onClick={(event) => handleNavClick(event, item.id)}
-                                className="text-3xl font-serif text-white/90 transition-colors active:text-[#dcc19a]"
+                                className="font-serif text-3xl text-white/90 transition-colors active:text-[#dcc19a]"
                             >
                                 {item.label}
                             </a>
                         ))}
                     </nav>
 
-                    {/* Нижний блок: Языки + Кнопка */}
                     <div className="mt-8 flex flex-col gap-8 pb-8">
-
-                        {/* Сетка языков */}
                         <div className="flex flex-wrap justify-center gap-2.5">
                             {LANGUAGES.map((lang) => (
                                 <button
                                     key={lang.code}
+                                    type="button"
                                     onClick={() => setLanguage(lang.code)}
                                     className={`flex h-[46px] w-[46px] items-center justify-center rounded-xl border text-sm font-bold transition-colors ${
                                         language === lang.code
@@ -199,8 +227,9 @@ function Header() {
                         </div>
 
                         <button
+                            type="button"
                             onClick={(event) => handleNavClick(event, "contact")}
-                            className="w-full rounded-xl bg-[#dcc19a] px-5 py-4 text-base font-bold text-[#1a1a1a] shadow-lg active:scale-[0.98] transition-transform"
+                            className="w-full rounded-xl bg-[#dcc19a] px-5 py-4 text-base font-bold text-[#1a1a1a] shadow-lg transition-transform active:scale-[0.98]"
                         >
                             {t("buttons.contact_us")}
                         </button>

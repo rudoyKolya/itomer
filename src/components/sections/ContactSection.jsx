@@ -1,9 +1,100 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Mail, Phone, Star } from "lucide-react";
-import { useLanguage } from "../../context/LanguageContext";
+import { useLanguage } from "../../context/useLanguage";
+
+const initialFormState = {
+    name: "",
+    email: "",
+    phone: "",
+    message: "",
+};
 
 function ContactSection() {
     const { t } = useLanguage();
+
+    const [formData, setFormData] = useState(initialFormState);
+    const [errors, setErrors] = useState({});
+    const [submitStatus, setSubmitStatus] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const validateForm = () => {
+        const nextErrors = {};
+
+        if (!formData.name.trim()) {
+            nextErrors.name = "Name is required";
+        }
+
+        if (!formData.email.trim()) {
+            nextErrors.email = "Email is required";
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+            nextErrors.email = "Enter a valid email";
+        }
+
+        if (!formData.phone.trim()) {
+            nextErrors.phone = "Phone is required";
+        }
+
+        if (!formData.message.trim()) {
+            nextErrors.message = "Message is required";
+        }
+
+        return nextErrors;
+    };
+
+    const handleChange = (event) => {
+        const { name, value } = event.target;
+
+        setFormData((currentValue) => ({
+            ...currentValue,
+            [name]: value,
+        }));
+
+        setErrors((currentErrors) => ({
+            ...currentErrors,
+            [name]: "",
+        }));
+
+        setSubmitStatus(null);
+    };
+
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+
+        const validationErrors = validateForm();
+
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
+            setSubmitStatus("error");
+            return;
+        }
+
+        setIsSubmitting(true);
+        setSubmitStatus(null);
+
+        try {
+            const payload = {
+                name: formData.name.trim(),
+                email: formData.email.trim(),
+                phone: formData.phone.trim(),
+                message: formData.message.trim(),
+            };
+
+            console.log("Contact form payload:", payload);
+
+            await new Promise((resolve) => {
+                setTimeout(resolve, 500);
+            });
+
+            setFormData(initialFormState);
+            setErrors({});
+            setSubmitStatus("success");
+        } catch {
+            setSubmitStatus("error");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     return (
         <section
@@ -17,7 +108,9 @@ function ContactSection() {
                     viewport={{ once: true, amount: 0.2 }}
                     transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
                 >
-                    <h2 className="font-serif text-4xl md:text-6xl">{t("contact.eyebrow")}</h2>
+                    <h2 className="font-serif text-4xl md:text-6xl">
+                        {t("contact.eyebrow")}
+                    </h2>
 
                     <p className="mt-6 max-w-md text-lg leading-8 text-[#6d655d]">
                         {t("contact.description")}
@@ -33,7 +126,7 @@ function ContactSection() {
                                 <p className="text-lg leading-8 text-white/90">
                                     {t("contact.testimonial")}
                                 </p>
-                                <p className="mt-5 text-sm tracking-[0.18em] text-white/55 uppercase">
+                                <p className="mt-5 text-sm uppercase tracking-[0.18em] text-white/55">
                                     {t("contact.client_name")}
                                 </p>
                             </div>
@@ -42,42 +135,107 @@ function ContactSection() {
                 </motion.div>
 
                 <motion.form
+                    onSubmit={handleSubmit}
+                    noValidate
                     initial={{ opacity: 0, y: 28 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, amount: 0.2 }}
                     transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
                     className="rounded-[1.8rem] border border-black/5 bg-white p-8 shadow-[0_18px_60px_rgba(0,0,0,0.08)]"
                 >
-                    <h3 className="mb-6 text-4xl font-serif">{t("contact.form_title")}</h3>
+                    <h3 className="mb-6 font-serif text-4xl">
+                        {t("contact.form_title")}
+                    </h3>
 
                     <div className="space-y-4">
-                        <input
-                            type="text"
-                            placeholder={t("contact.placeholder_name")}
-                            className="w-full rounded-xl border border-[#e7ddd3] bg-[#f6f2ee] px-4 py-3.5 outline-none transition focus:border-[#d8bd96]"
-                        />
-                        <input
-                            type="email"
-                            placeholder={t("contact.placeholder_email")}
-                            className="w-full rounded-xl border border-[#e7ddd3] bg-[#f6f2ee] px-4 py-3.5 outline-none transition focus:border-[#d8bd96]"
-                        />
-                        <input
-                            type="tel"
-                            placeholder={t("contact.placeholder_phone")}
-                            className="w-full rounded-xl border border-[#e7ddd3] bg-[#f6f2ee] px-4 py-3.5 outline-none transition focus:border-[#d8bd96]"
-                        />
-                        <textarea
-                            rows={5}
-                            placeholder={t("contact.placeholder_message")}
-                            className="w-full rounded-xl border border-[#e7ddd3] bg-[#f6f2ee] px-4 py-3.5 outline-none transition focus:border-[#d8bd96]"
-                        />
+                        <div>
+                            <input
+                                name="name"
+                                type="text"
+                                value={formData.name}
+                                onChange={handleChange}
+                                placeholder={t("contact.placeholder_name")}
+                                aria-invalid={Boolean(errors.name)}
+                                className={`w-full rounded-xl border bg-[#f6f2ee] px-4 py-3.5 outline-none transition focus:border-[#d8bd96] ${
+                                    errors.name ? "border-red-400" : "border-[#e7ddd3]"
+                                }`}
+                            />
+                            {errors.name && (
+                                <p className="mt-1 text-sm text-red-500">{errors.name}</p>
+                            )}
+                        </div>
+
+                        <div>
+                            <input
+                                name="email"
+                                type="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                placeholder={t("contact.placeholder_email")}
+                                aria-invalid={Boolean(errors.email)}
+                                className={`w-full rounded-xl border bg-[#f6f2ee] px-4 py-3.5 outline-none transition focus:border-[#d8bd96] ${
+                                    errors.email ? "border-red-400" : "border-[#e7ddd3]"
+                                }`}
+                            />
+                            {errors.email && (
+                                <p className="mt-1 text-sm text-red-500">{errors.email}</p>
+                            )}
+                        </div>
+
+                        <div>
+                            <input
+                                name="phone"
+                                type="tel"
+                                value={formData.phone}
+                                onChange={handleChange}
+                                placeholder={t("contact.placeholder_phone")}
+                                aria-invalid={Boolean(errors.phone)}
+                                className={`w-full rounded-xl border bg-[#f6f2ee] px-4 py-3.5 outline-none transition focus:border-[#d8bd96] ${
+                                    errors.phone ? "border-red-400" : "border-[#e7ddd3]"
+                                }`}
+                            />
+                            {errors.phone && (
+                                <p className="mt-1 text-sm text-red-500">{errors.phone}</p>
+                            )}
+                        </div>
+
+                        <div>
+                            <textarea
+                                name="message"
+                                rows={5}
+                                value={formData.message}
+                                onChange={handleChange}
+                                placeholder={t("contact.placeholder_message")}
+                                aria-invalid={Boolean(errors.message)}
+                                className={`w-full rounded-xl border bg-[#f6f2ee] px-4 py-3.5 outline-none transition focus:border-[#d8bd96] ${
+                                    errors.message ? "border-red-400" : "border-[#e7ddd3]"
+                                }`}
+                            />
+                            {errors.message && (
+                                <p className="mt-1 text-sm text-red-500">{errors.message}</p>
+                            )}
+                        </div>
                     </div>
+
+                    {submitStatus === "success" && (
+                        <p className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                            Request prepared successfully. Email sending will be connected later.
+                        </p>
+                    )}
+
+                    {submitStatus === "error" && (
+                        <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                            Please check the form fields and try again.
+                        </p>
+                    )}
 
                     <button
                         type="submit"
-                        className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#dcc19a] px-6 py-4 text-lg font-medium text-[#2b2219] transition hover:bg-[#e5cbab]"
+                        disabled={isSubmitting}
+                        className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#dcc19a] px-6 py-4 text-lg font-medium text-[#2b2219] transition hover:bg-[#e5cbab] disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                        {t("buttons.contact_us")} <ArrowRight className="h-4 w-4 rtl:rotate-180" />
+                        {isSubmitting ? "Sending..." : t("buttons.contact_us")}
+                        {!isSubmitting && <ArrowRight className="h-4 w-4 rtl:rotate-180" />}
                     </button>
                 </motion.form>
 
@@ -100,7 +258,10 @@ function ContactSection() {
                     </div>
 
                     <div className="mt-10">
-                        <h3 className="font-serif text-4xl text-[#2d2621]">{t("nav.contact")}</h3>
+                        <h3 className="font-serif text-4xl text-[#2d2621]">
+                            {t("nav.contact")}
+                        </h3>
+
                         <div className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-sm uppercase tracking-[0.18em] text-[#8d857c]">
                             <span>{t("nav.home")}</span>
                             <span>{t("nav.about")}</span>
@@ -108,7 +269,10 @@ function ContactSection() {
                             <span>{t("nav.featured")}</span>
                             <span>{t("nav.contact")}</span>
                         </div>
-                        <p className="mt-10 text-sm text-[#948c84]">{t("contact.footer_copy")}</p>
+
+                        <p className="mt-10 text-sm text-[#948c84]">
+                            {t("contact.footer_copy")}
+                        </p>
                     </div>
                 </motion.div>
             </div>

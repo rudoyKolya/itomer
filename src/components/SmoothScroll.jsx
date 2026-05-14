@@ -13,17 +13,23 @@ function SmoothScroll({ children }) {
 
         lenis.on("scroll", ScrollTrigger.update);
 
-        function raf(time) {
-            lenis.raf(time);
-            requestAnimationFrame(raf);
-        }
+        let rafId;
 
-        const rafId = requestAnimationFrame(raf);
+        const raf = (time) => {
+            lenis.raf(time);
+            rafId = requestAnimationFrame(raf);
+        };
+
+        rafId = requestAnimationFrame(raf);
 
         ScrollTrigger.refresh();
 
         return () => {
-            cancelAnimationFrame(rafId);
+            if (rafId) {
+                cancelAnimationFrame(rafId);
+            }
+
+            lenis.off("scroll", ScrollTrigger.update);
             lenis.destroy();
         };
     }, []);
