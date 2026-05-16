@@ -9,6 +9,7 @@ const initialFormState = {
     email: "",
     phone: "",
     message: "",
+    company: "",
 };
 
 function ContactSection() {
@@ -74,16 +75,30 @@ function ContactSection() {
         setSubmitStatus(null);
 
         try {
-            const payload = {
-                name: formData.name.trim(),
-                email: formData.email.trim(),
-                phone: formData.phone.trim(),
-                message: formData.message.trim(),
-            };
-
-            await new Promise((resolve) => {
-                setTimeout(resolve, 500);
+            const response = await fetch("/api/contact", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    name: formData.name.trim(),
+                    email: formData.email.trim(),
+                    phone: formData.phone.trim(),
+                    message: formData.message.trim(),
+                    company: formData.company.trim(),
+                    pageUrl: window.location.href,
+                }),
             });
+
+            if (!response.ok) {
+                const data = await response.json().catch(() => null);
+
+                if (data?.errors) {
+                    setErrors(data.errors);
+                }
+
+                throw new Error(data?.error || "Failed to send request");
+            }
 
             setFormData(initialFormState);
             setErrors({});
@@ -198,6 +213,17 @@ function ContactSection() {
                             )}
                         </div>
 
+                        <input
+                            name="company"
+                            type="text"
+                            value={formData.company}
+                            onChange={handleChange}
+                            tabIndex={-1}
+                            autoComplete="off"
+                            aria-hidden="true"
+                            className="hidden"
+                        />
+
                         <div>
                             <textarea
                                 name="message"
@@ -218,13 +244,13 @@ function ContactSection() {
 
                     {submitStatus === "success" && (
                         <p className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-                            Request prepared successfully. Email sending will be connected later.
+                            Request sent successfully. We will contact you shortly.
                         </p>
                     )}
 
                     {submitStatus === "error" && (
                         <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-                            Please check the form fields and try again.
+                            Please check the form fields or try again later.
                         </p>
                     )}
 
